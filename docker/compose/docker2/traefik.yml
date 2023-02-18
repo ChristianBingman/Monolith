@@ -1,0 +1,10 @@
+## traefik.yml
+
+# Docker configuration backend
+providers:
+  docker:
+    defaultRule: "Host(`{{ .Name }}.christianbingman.com`)"
+
+# API and dashboard configuration
+api:
+  insecure: true

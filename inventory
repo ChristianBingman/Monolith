@@ -1,0 +1,31 @@
+[all:vars]
+pipelining = False
+rpi=no
+vm=no
+autoupdate=yes
+setupPersonal=no
+installDocker=no
+setupNAS=no
+installNetdata=yes
+setupProxy=no
+gaming=no
+
+[proxmox]
+thor.christianbingman.com
+
+[proxmox:vars]
+role=proxmox
+ansible_ssh_user=root
+linuxvms=["nickfury","captainamerica","daredevil"]
+
+[base]
+nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes
+professorx.christianbingman.com vm=yes setupPersonal=yes gaming=yes proton_ge_versions='["7-49", "7-48"]'
+captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1/"
+daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2/"
+ironman.christianbingman.com installDocker=yes setupNAS=yes poolname=largestore disks="['ata-ST1000LM048-2E7172_ZKP0D59Q','ata-TOSHIBA_MQ01ABD100M_77K1S0JXS']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2" compose_src="docker/compose/ironman/"
+web-proxy.christianbingman.com setupProxy=yes ansible_ssh_user=ubuntu in_interface=ens5
+
+[base:vars]
+role=base
+

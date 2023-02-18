@@ -1,0 +1,80 @@
+- name: Install drivers and software
+  become: yes
+  apt:
+    update_cache: yes
+    pkg:
+      - steam
+      - nvidia-driver-515
+      - nvidia-dkms-515
+      - libc6-i386
+      - cifs-utils
+- name: Copy autostart file
+  become: yes
+  copy:
+    src: steam.desktop
+    dest: /home/christian/.config/autostart/steam.desktop
+    mode: '0644'
+    owner: christian
+    group: christian
+- name: Create mountpoints
+  become: yes
+  file:
+    path: "/mnt/{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: christian
+    group: christian
+  loop:
+    - steam
+    - nas
+- name: Copy samba credentials
+  become: yes
+  copy:
+    src: credentials
+    dest: /etc/samba/credentials
+    mode: '0600'
+    owner: root
+    group: root
+- name: Ensure fstab entries exist
+  register: fstab_entries
+  become: yes
+  lineinfile:
+    path: /etc/fstab
+    create: yes
+    line: "{{ item }}"
+  loop:
+    - "PARTLABEL=Steam	/mnt/steam	ext4	defaults	0	0"
+    - "//ironman.christianbingman.com/General /mnt/nas cifs credentials=/etc/samba/credentials,uid=1000,gid=1000 0 0"
+- name: Mount new fstab entries
+  when: fstab_entries.changed
+  become: yes
+  shell: mount -a
+- name: Download ALVR
+  get_url:
+    url: https://github.com/alvr-org/ALVR/releases/download/v19.0.0/alvr_server_linux.tar.gz
+    dest: /home/ansible/alvr_server_linux.tar.gz
+  register: download_alvr
+- name: Unarchive ALVR
+  become: yes
+  when: download_alvr.changed
+  unarchive:
+    src: /home/ansible/alvr_server_linux.tar.gz
+    dest: /home/christian/
+    owner: christian
+    group: christian
+    remote_src: yes
+- name: Ensure compatabilitytool.d directory exists
+  become: yes
+  become_user: christian
+  file:
+    path: ~/.steam/root/compatibilitytools.d
+    state: directory
+- name: Install ProtonGE Versions
+  become: yes
+  become_user: christian
+  unarchive:
+    src: "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/GE-Proton{{ item }}/GE-Proton{{ item }}.tar.gz"
+    dest: "~/.steam/root/compatibilitytools.d"
+    creates: "~/.steam/root/compatibilitytools.d/GE-Proton{{ item }}"
+    remote_src: yes
+  loop: "{{ proton_ge_versions }}"

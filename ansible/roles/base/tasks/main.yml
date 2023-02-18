@@ -1,0 +1,54 @@
+- name: Create christian user
+  become: yes
+  user:
+    name: christian
+    comment: Default christian user
+    group: sudo
+- name: Create/Update SSH Keys
+  become: yes
+  authorized_key:
+    user: christian
+    key: "{{ lookup('file', 'christian_id_rsa.pub') }}"
+- name: Copy a new sudoers file into place, after passing validation with visudo
+  become: yes
+  ansible.builtin.template:
+    src: sudoers
+    dest: /etc/sudoers
+    validate: /usr/sbin/visudo -cf %s
+- name: Update sshd configuration safely, avoid locking yourself out
+  become: yes
+  register: sshd_changed
+  ansible.builtin.template:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    validate: /usr/sbin/sshd -t -f %s
+    backup: yes
+- name: Reload sshd when sshd_changed
+  become: yes
+  when: sshd_changed.changed
+  command: systemctl restart sshd
+- name: Disable root logon
+  become: yes
+  user:
+    name: root
+    password: '!'
+- name: Upgrade packages if enabled
+  become: yes
+  apt: 
+    upgrade: dist 
+    force_apt_get: yes
+  ignore_errors: yes
+  when: autoupdate == "yes"
+- name: Set timezone
+  become: yes
+  timezone:
+    name: America/Chicago
+- name: Install qemu guest tools
+  become: yes
+  when: vm == "yes"
+  apt:
+    update_cache: yes
+    name: qemu-guest-agent

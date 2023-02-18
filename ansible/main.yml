@@ -1,0 +1,45 @@
+---
+- name: Run the role for each host
+  hosts: all
+  remote_user: ansible
+  tasks:
+  - name: Setup Gaming VM
+    include_role:
+      name: gaming
+    when: gaming == "yes"
+  - name: Setup Storage Server
+    include_role:
+      name: nas
+    when: setupNAS == "yes"
+  - name: Run proxmox role
+    include_role:
+      name: proxmox
+    when: role == "proxmox"
+  - name: Run base role
+    include_role:
+      name: base
+    when: role == "base"
+  - name: Setup netdata
+    include_role:
+      name: netdata
+    when: installNetdata == "yes"
+  - name: Install docker
+    include_role:
+      name: docker
+    when: installDocker == "yes"
+  - name: Setup web proxy
+    include_role:
+      name: web_proxy
+    when: setupProxy == "yes"
+  - name: Apply Compose
+    include_role:
+      name: compose
+    when: compose_src is defined
+  - name: Run personal role as christian user
+    block:
+    - name: Run personal role
+      include_role:
+        name: personal
+    become: yes
+    become_user: christian
+    when: setupPersonal == "yes"

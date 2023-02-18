@@ -1,0 +1,24 @@
+- name: Install python3-pip
+  become: yes
+  package:
+    name: python3-pip
+- name: Install required python packages
+  command: pip3 install docker docker-compose
+  changed_when: false
+- name: Copy Docker Directory (Note we may want to change this if we have a large number of files in the compose dir)
+  when: compose_src is defined
+  copy:
+    src: "{{inventory_dir}}/docker"
+    dest: /home/ansible/.ansible
+    mode: 0600
+- name: Apply compose file
+  community.docker.docker_compose:
+    remove_orphans: yes
+    project_src: "{{'/home/ansible/.ansible/' + compose_src}}"
+- name: Restart Traefik
+  community.docker.docker_compose:
+    restarted: yes
+    services:
+      - traefik
+    project_src: "{{'/home/ansible/.ansible/' + compose_src}}"
+

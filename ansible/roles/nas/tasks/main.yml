@@ -1,0 +1,124 @@
+- name: Install Kernel Headers
+  become: yes
+  apt:
+    update_cache: yes
+    pkg:
+      - raspberrypi-kernel-headers
+- name: Install ZFS utils
+  become: yes
+  register: install_zfs
+  apt:
+    update_cache: yes
+    pkg:
+      - zfs-dkms
+      - zfsutils-linux
+- name: Reboot on install
+  become: yes
+  when: install_zfs.changed
+  reboot:
+- name: Check if pool exists
+  failed_when: false
+  changed_when: false
+  register: check_zpool
+  shell: /usr/sbin/zpool list | grep "{{poolname}}"
+- name: Create pool
+  when: check_zpool.rc != 0
+  become: yes
+  shell: "/usr/sbin/zpool create {{poolname}} {{disks | join(' ')}}"
+- name: Include dataset file
+  include_vars: "{{inventory_dir}}/{{datasetfile}}"
+- name: Create datasets and mounts
+  become: yes
+  zfs:
+    name: "{{poolname}}/{{item.name}}"
+    state: present
+    extra_zfs_properties: "{{item.extra}}" 
+  loop: "{{datasets}}"
+- name: Install samba
+  become: yes
+  apt:
+    update_cache: yes
+    pkg:
+      - samba
+- name: Template smb.conf
+  become: yes
+  register: smb_conf_template
+  template:
+    src: "{{inventory_dir}}/{{smb_conf}}"
+    dest: /etc/samba/smb.conf
+- name: Change directory permissions for SMB
+  become: yes
+  failed_when: false
+  file:
+    dest: "{{item.extra.mountpoint}}"
+    owner: nobody
+    group: nogroup
+    state: directory
+    mode: '0777'
+  loop: "{{datasets}}"
+- name: Create directory for non-ZFS drive
+  become: yes
+  file:
+    dest: "/mnt/nvmessd"
+    owner: nobody
+    group: nogroup
+    state: directory
+    mode: '0777'
+- name: Auto mount non-ZFS drive
+  become: yes
+  lineinfile:
+    path: /etc/fstab
+    create: yes
+    line: "/dev/disk/by-id/usb-SSK_SSK_Storage_DD564198838B8-0:0-part1 /mnt/nvmessd ext4 defaults 0 0"
+- name: Ensure all drives are mounted
+  become: yes
+  changed_when: false
+  shell: mount -a
+- name: Restart smbd
+  become: yes
+  changed_when: false
+  systemd:
+    name: smbd
+    state: restarted
+- name: Generate key pair for rsync backups
+  register: gen_keypair
+  community.crypto.openssh_keypair:
+    path: /home/ansible/.ssh/id_rsa
+- name: Copy backup script
+  copy:
+    src: backup.sh
+    dest: /home/ansible/backup.sh
+    mode: '0755'
+- name: Store public key for later access
+  set_fact: pubkey="{{ gen_keypair.public_key }}"
+- name: Create cron job for copying faststorage to general
+  become: yes
+  cron:
+    name: "Copy faststorage to general"
+    weekday: "2,4"
+    minute: "0"
+    hour: "0"
+    user: root
+    job: "/home/ansible/backup.sh nvmessd -au --delete /mnt/nvmessd/ /mnt/general/FastStorageBackup"
+- name: Create cron job for copying general to proxmox host storage
+  become: yes
+  cron:
+    name: "Copy general to proxmox host"
+    weekday: "3,5"
+    minute: "0"
+    hour: "0"
+    user: root
+    job: "/home/ansible/backup.sh general -au --delete -e 'ssh -i /home/ansible/.ssh/id_rsa' /mnt/general/ root@thor.christianbingman.com:/pool1/nasbackup"
+- name: Decrypt password
+  set_fact:
+    samba_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35343763313339316666636336613135373334316533306332326463623633363537363866656364
+          6462386438336561656539396636386231386337313436370a643366343038663662393039323034
+          39633362386336616531393439623132353162323561646136393338656665313966343465313562
+          6234343131343831620a323632376532396336343966663630653439633232346564636237393030
+          61626533383365366137623935373030376231376335663039653230636237646633
+- name: Configure Samba users.
+  become: yes
+  shell: (echo '{{ samba_password }}'; echo '{{ samba_password }}') | smbpasswd -s -a christian
+  changed_when: false

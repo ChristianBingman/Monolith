@@ -1,0 +1,75 @@
+- name: Install python3-pip
+  package:
+    name: python3-pip
+- name: Install required python packages
+  command: pip3 install proxmoxer
+  changed_when: false
+- name: Create/Update SSH Keys
+  authorized_key:
+    user: root
+    key: "{{ lookup('file', 'christian_id_rsa.pub') }}"
+- name: Add ironman public key
+  authorized_key:
+    user: root
+    key: "{{ hostvars['ironman.christianbingman.com']['pubkey'] }}"
+- name: Update sshd configuration safely, avoid locking yourself out
+  register: sshd_changed
+  ansible.builtin.template:
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+    validate: /usr/sbin/sshd -t -f %s
+    backup: yes
+- name: Reload sshd when sshd_changed
+  when: sshd_changed.changed
+  command: systemctl restart sshd
+- name: Upgrade packages if enabled
+  apt: upgrade=dist force_apt_get=yes
+  ignore_errors: yes
+  when: autoupdate == "yes"
+- name: Setup grub template
+  register: grub_changed
+  template:
+    src: grub
+    dest: /etc/default/grub
+    owner: root
+    group: root
+    mode: '0644'
+- name: If grub changed, update
+  when: grub_changed.changed
+  command: update-grub
+- name: Update kernel modules
+  register: modules_changed
+  template:
+    src: modules
+    dest: /etc/modules
+    owner: root
+    group: root
+    mode: '0644'
+- name: Update driver blacklist
+  register: blacklist_changed
+  template:
+    src: pve-blacklist.conf
+    dest: /etc/modprobe.d/pve-blacklist.conf
+    owner: root
+    group: root
+    mode: '0644'
+- name: Restart if any of the above related to pci passthrough changed
+  when: blacklist_changed.changed or modules_changed.changed or grub_changed.changed
+  reboot:
+- name: Install necessary packages
+  apt:
+    update_cache: yes
+    pkg:
+      - prometheus-node-exporter
+- name: Start and enable node exporter
+  systemd:
+    name: prometheus-node-exporter
+    enabled: yes
+    state: started
+- include_tasks: linuxvms.yml
+  loop: "{{linuxvms}}"
+- include_tasks: professorx.yml
+- meta: clear_host_errors

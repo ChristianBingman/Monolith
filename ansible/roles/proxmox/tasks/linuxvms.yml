@@ -1,0 +1,44 @@
+- name: Create "{{item}}" container 1
+  register: create_container
+  community.general.proxmox_kvm:
+    node: 'pve'
+    api_user: 'ansible@pam'
+    api_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35636538313935326630646263323736616531313862613936616638663839326131616631646639
+          6363613234616432613434653862663863643130623735300a386264316230323137663962313562
+          36646139356635386366373833303633393935623961653839353137633531353239663937353064
+          6431666463396231360a313364613234613235613035353261666234646566633836623564653562
+          38306131333364653663346262393265346432346463323636636163383531336263
+    api_host: 'thor.christianbingman.com'
+    proxmox_default_behavior: no_defaults
+    name: "{{item}}"
+    clone: 'ubuntu-2004-template'
+    memory: 2048
+    cores: 2
+    storage: nvmessd
+    timeout: 240
+- name: Wait for updates to apply
+  when: create_container.changed
+  wait_for:
+    timeout: 10
+- name: Start container if new
+  when: create_container.changed
+  community.general.proxmox_kvm:
+    node: 'pve'
+    api_user: 'ansible@pam'
+    api_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35636538313935326630646263323736616531313862613936616638663839326131616631646639
+          6363613234616432613434653862663863643130623735300a386264316230323137663962313562
+          36646139356635386366373833303633393935623961653839353137633531353239663937353064
+          6431666463396231360a313364613234613235613035353261666234646566633836623564653562
+          38306131333364653663346262393265346432346463323636636163383531336263
+    api_host: 'pve.christianbingman.com'
+    proxmox_default_behavior: no_defaults
+    name: "{{item}}"
+    state: started
+- name: Wait for vm to be started and dhcp name to set
+  when: create_container.changed
+  wait_for:
+    timeout: 240

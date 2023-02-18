@@ -1,0 +1,57 @@
+- name: Install required packages
+  become: yes
+  package:
+    name:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg
+    - lsb-release
+- name: Download docker script
+  register: docker_download
+  get_url:
+    url: "https://get.docker.com"
+    dest: /home/ansible/get_docker.sh
+    mode: '0755'
+- name: Run docker script
+  when: docker_download.changed
+  shell: /home/ansible/get_docker.sh
+- name: Start service
+  service:
+    name: docker
+    enabled: yes
+    state: started
+- name: Ensure christian user is part of docker group
+  become: yes
+  user:
+    name: christian
+    groups:
+    - sudo
+    - docker
+- name: Ensure ansible user is part of the docker group
+  become: yes
+  user:
+    name: ansible
+    groups:
+      - sudo
+      - docker
+  register: update_ansible
+- name: Reset ssh connection
+  when: update_ansible.changed
+  meta: reset_connection
+- name: Update Docker Daemon Config
+  become: yes
+  register: ddaemon_config
+  template:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: '0644'
+- name: Restart docker when daemon changed
+  become: yes
+  when: ddaemon_config.changed
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker

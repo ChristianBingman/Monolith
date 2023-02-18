@@ -1,0 +1,65 @@
+services:
+  traefik:
+    image: traefik:v2.5
+    ports:
+      - "8081:8080"
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/home/ansible/.ansible/docker/compose/docker2/traefik.yml:/etc/traefik/traefik.yml"
+  homebridge:
+    container_name: homebridge
+    image: oznu/homebridge:latest
+    restart: always
+    network_mode: host
+    volumes:
+      - homebridge:/homebridge
+    logging:
+      driver: json-file
+      options:
+        max-size: "10mb"
+        max-file: "1"
+  unifi-controller:
+    image: lscr.io/linuxserver/unifi-controller:latest
+    container_name: unifi-controller
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    volumes:
+      - unifi:/config
+    ports:
+      - 8443:8443
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8080:8080
+      - 1900:1900/udp #optional
+      - 8843:8843 #optional
+      - 8880:8880 #optional
+      - 6789:6789 #optional
+      - 5514:5514/udp #optional
+    restart: unless-stopped
+  jupyter:
+    container_name: jupyter
+    image: jupyter/scipy-notebook:latest
+    labels:
+      - traefik.http.routers.jupyter.rule=Host(`jupyter.christianbingman.com`)
+    restart: always
+    volumes:
+      - jupytervol:/home/jovyan/work
+    expose:
+      - 8888
+  registry:
+    image: registry:2
+    ports:
+      - 5000:5000
+    restart: always
+    volumes:
+      - registryvol:/var/lib/registry
+
+volumes:
+  homebridge:
+  jupytervol:
+  noderedvol:
+  registryvol:
+  unifi:

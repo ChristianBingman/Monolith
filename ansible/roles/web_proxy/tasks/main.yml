@@ -1,0 +1,165 @@
+- name: Install packages
+  become: yes
+  apt:
+    update_cache: yes
+    pkg:
+      - openvpn
+    state: latest
+- name: Copy openvpn config file
+  become: yes
+  copy:
+    src: config.ovpn
+    dest: /etc/openvpn/client.conf
+- name: Copy openvpn credentials file
+  become: yes
+  copy:
+    src: credentials
+    dest: /etc/openvpn/credentials.txt
+- name: Start openvpn service
+  become: yes
+  systemd:
+    name: openvpn@client
+    state: started
+    enabled: yes
+- name: Allow ip_forward
+  become: yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+- name: Default loopback input rule
+  become: yes
+  iptables:
+    chain: INPUT
+    jump: ACCEPT
+    in_interface: lo
+- name: Default loopback output rule
+  become: yes
+  iptables:
+    chain: OUTPUT
+    jump: ACCEPT
+    out_interface: lo
+- name: Allow established connections
+  become: yes
+  iptables:
+    chain: INPUT
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+- name: Allow established connections (output)
+  become: yes
+  iptables:
+    chain: OUTPUT
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+- name: Allow traffic from public interface to private interface on port 80
+  become: yes
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ in_interface }}"
+    out_interface: tun0
+    protocol: tcp
+    destination_port: 80
+    syn: match
+    ctstate: NEW
+    jump: ACCEPT
+    comment: Allow new connections to be made for traffic from in_interface to tun0 on port 80
+- name: Allow established traffic from public interface to private interface
+  become: yes
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ in_interface }}"
+    out_interface: tun0
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+    comment: Allow established connections to be made for traffic from in_interface to tun0
+- name: Allow established traffic from private interface to public interface
+  become: yes
+  iptables:
+    chain: FORWARD
+    in_interface: tun0
+    out_interface: "{{ in_interface }}"
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+    comment: Allow established connections to be made for traffic from tun0 to in_interface
+- name: Disallow all other FORWARD traffic
+  become: yes
+  iptables:
+    chain: FORWARD
+    policy: DROP
+- name: Forward port 80 traffic
+  become: yes
+  iptables:
+    chain: PREROUTING
+    table: nat
+    in_interface: "{{ in_interface }}"
+    protocol: tcp
+    destination_port: 80
+    jump: DNAT
+    to_destination: 192.168.1.6
+- name: Forward port 80 traffic back
+  become: yes
+  iptables:
+    chain: POSTROUTING
+    table: nat
+    out_interface: tun0
+    protocol: tcp
+    destination_port: 80
+    jump: SNAT
+    destination: 192.168.1.6
+    to_source: 192.168.30.254
+- name: Allow traffic from public interface to private interface on port 443
+  become: yes
+  iptables:
+    chain: FORWARD
+    in_interface: "{{ in_interface }}"
+    out_interface: tun0
+    protocol: tcp
+    destination_port: 443
+    syn: match
+    ctstate: NEW
+    jump: ACCEPT
+    comment: Allow new connections to be made for traffic from in_interface to tun0 on port 443
+- name: Forward port 443 traffic
+  become: yes
+  iptables:
+    chain: PREROUTING
+    table: nat
+    in_interface: "{{ in_interface }}"
+    protocol: tcp
+    destination_port: 443
+    jump: DNAT
+    to_destination: 192.168.1.6
+- name: Forward port 443 traffic back
+  become: yes
+  iptables:
+    chain: POSTROUTING
+    table: nat
+    out_interface: tun0
+    protocol: tcp
+    destination_port: 443
+    jump: SNAT
+    destination: 192.168.1.6
+    to_source: 192.168.30.254
+- name: Allow ADMINNET to SSH
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 22
+    source: 192.168.1.0/24
+    jump: ACCEPT
+- name: Allow Netdata
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: 19999
+    source: 192.168.1.0/24
+    jump: ACCEPT
+- name: Disallow all INPUT traffic
+  become: yes
+  iptables:
+    chain: INPUT
+    policy: DROP
