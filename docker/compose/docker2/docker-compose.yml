@@ -1,6 +1,7 @@
 services:
   traefik:
     image: traefik:v2.5
+    restart: always
     ports:
       - "8081:8080"
       - "80:80"
@@ -56,6 +57,12 @@ services:
     restart: always
     volumes:
       - registryvol:/var/lib/registry
+  autoheal:
+    image: willfarrell/autoheal:latest
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: all
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
 
 volumes:
   homebridge:

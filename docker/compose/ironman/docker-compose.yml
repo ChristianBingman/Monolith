@@ -1,11 +1,21 @@
 version: "3.9"
 services:
+  traefik:
+    image: traefik:v2.5
+    restart: always
+    ports:
+      - "8081:8080"
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/home/ansible/.ansible/docker/compose/ironman/traefik.yml:/etc/traefik/traefik.yml"
   transmission-openvpn:
     cap_add:
       - NET_ADMIN
     volumes:
       - "/mnt/general/transmission-data:/data"
     env_file: ./secrets.env
+    restart: always
     logging:
       driver: json-file
       options:
@@ -13,3 +23,9 @@ services:
     ports:
       - '9091:9091'
     image: haugene/transmission-openvpn
+  autoheal:
+    image: willfarrell/autoheal:latest
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: all
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
