@@ -29,30 +29,6 @@
     sysctl_set: yes
     state: present
     reload: yes
-- name: Default loopback input rule
-  become: yes
-  iptables:
-    chain: INPUT
-    jump: ACCEPT
-    in_interface: lo
-- name: Default loopback output rule
-  become: yes
-  iptables:
-    chain: OUTPUT
-    jump: ACCEPT
-    out_interface: lo
-- name: Allow established connections
-  become: yes
-  iptables:
-    chain: INPUT
-    ctstate: RELATED,ESTABLISHED
-    jump: ACCEPT
-- name: Allow established connections (output)
-  become: yes
-  iptables:
-    chain: OUTPUT
-    ctstate: RELATED,ESTABLISHED
-    jump: ACCEPT
 - name: Allow traffic from public interface to private interface on port 80
   become: yes
   iptables:
@@ -142,22 +118,6 @@
     jump: SNAT
     destination: 192.168.1.6
     to_source: 192.168.30.254
-- name: Allow ADMINNET to SSH
-  become: yes
-  iptables:
-    chain: INPUT
-    protocol: tcp
-    destination_port: 22
-    source: 192.168.1.0/24
-    jump: ACCEPT
-- name: Allow Netdata
-  become: yes
-  iptables:
-    chain: INPUT
-    protocol: tcp
-    destination_port: 19999
-    source: 192.168.1.0/24
-    jump: ACCEPT
 - name: Disallow all INPUT traffic
   become: yes
   iptables:

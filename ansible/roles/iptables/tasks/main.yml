@@ -1,0 +1,63 @@
+- name: Default loopback input rule
+  become: yes
+  iptables:
+    chain: INPUT
+    jump: ACCEPT
+    in_interface: lo
+- name: Default loopback output rule
+  become: yes
+  iptables:
+    chain: OUTPUT
+    jump: ACCEPT
+    out_interface: lo
+- name: Allow established connections
+  become: yes
+  iptables:
+    chain: INPUT
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+- name: Allow established connections (output)
+  become: yes
+  iptables:
+    chain: OUTPUT
+    ctstate: RELATED,ESTABLISHED
+    jump: ACCEPT
+- name: Allow Private Ports (tcp)
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ item }}"
+    source: "{{ local_subnet }}"
+    jump: ACCEPT
+  loop: "{{ private_ports }}"
+- name: Allow Private Ports (udp)
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: udp
+    destination_port: "{{ item }}"
+    source: "{{ local_subnet }}"
+    jump: ACCEPT
+  loop: "{{ private_ports_udp }}"
+- name: Allow Public Ports (tcp)
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  loop: "{{ public_ports }}"
+- name: Allow Public Ports (udp)
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: udp
+    destination_port: "{{ item }}"
+    jump: ACCEPT
+  loop: "{{ public_ports_udp }}"
+- name: Disallow all INPUT traffic
+  become: yes
+  iptables:
+    chain: INPUT
+    policy: DROP

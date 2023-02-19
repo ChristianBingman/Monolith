@@ -5,6 +5,7 @@ services:
     ports:
       - "8081:8080"
       - "80:80"
+      - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/ansible/.ansible/docker/compose/docker2/traefik.yml:/etc/traefik/traefik.yml"
@@ -40,6 +41,11 @@ services:
       - 6789:6789 #optional
       - 5514:5514/udp #optional
     restart: unless-stopped
+    labels:
+      - traefik.http.routers.ubiquiti.rule=Host(`ubiquiti.christianbingman.com`)
+      - traefik.http.services.ubiquiti.loadbalancer.server.port=8443
+      - traefik.http.routers.ubiquiti.service=ubiquiti
+      - traefik.http.routers.ubiquiti.entrypoints=websecure
   jupyter:
     container_name: jupyter
     image: jupyter/scipy-notebook:latest

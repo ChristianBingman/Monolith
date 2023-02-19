@@ -3,6 +3,10 @@
   hosts: all
   remote_user: ansible
   tasks:
+  - name: Setup IPTables
+    include_role:
+      name: iptables
+    when: setupIptables == "yes"
   - name: Setup Gaming VM
     include_role:
       name: gaming
