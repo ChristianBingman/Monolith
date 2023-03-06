@@ -22,6 +22,8 @@ services:
           max-size: 10m
     labels:
       - traefik.http.routers.transmission.rule=Host(`transmission.christianbingman.com`)
+      - traefik.http.services.transmission.loadbalancer.server.port=9091
+      - traefik.http.routers.transmission.service=transmission
     expose:
       - '9091'
     image: haugene/transmission-openvpn

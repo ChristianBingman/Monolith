@@ -69,6 +69,13 @@ services:
       AUTOHEAL_CONTAINER_LABEL: all
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
+  renderer:
+    expose:
+      - 8081
+    image: grafana/grafana-image-renderer:latest
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.renderer.rule=Host(`renderer.christianbingman.com`)
 
 volumes:
   homebridge:

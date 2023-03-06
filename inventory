@@ -29,7 +29,7 @@ nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes public_
 professorx.christianbingman.com vm=yes setupPersonal=yes gaming=yes proton_ge_versions='["7-49", "7-48"]' public_ports_udp='["27031","27036"]' public_ports='["27036","27037"]' setupIptables=yes
 captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1/" public_ports='["80","443"]' setupIptables=yes
 daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2/" 
-ironman.christianbingman.com installDocker=yes setupNAS=yes poolname=largestore disks="['ata-ST1000LM048-2E7172_ZKP0D59Q','ata-TOSHIBA_MQ01ABD100M_77K1S0JXS']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2" compose_src="docker/compose/ironman/" setupIptables=yes public_ports='["139","445"]'
+ironman.christianbingman.com installDocker=yes setupNAS=yes poolname=largestore disks="['ata-ST1000LM048-2E7172_ZKP0D59Q','ata-TOSHIBA_MQ01ABD100M_77K1S0JXS']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2" compose_src="docker/compose/ironman/" setupIptables=yes public_ports='["139","445","80"]'
 web-proxy.christianbingman.com setupProxy=yes ansible_ssh_user=ubuntu in_interface=ens5 setupIptables=yes
 
 [base:vars]
