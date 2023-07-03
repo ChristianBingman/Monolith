@@ -3,14 +3,10 @@
   hosts: all
   remote_user: ansible
   tasks:
-  - name: Setup IPTables
+  - name: Setup Router
     include_role:
-      name: iptables
-    when: setupIptables == "yes"
-  - name: Setup Gaming VM
-    include_role:
-      name: gaming
-    when: gaming == "yes"
+      name: router
+    when: setupRouter == "yes"
   - name: Setup Storage Server
     include_role:
       name: nas
@@ -35,6 +31,10 @@
     include_role:
       name: web_proxy
     when: setupProxy == "yes"
+  - name: Setup IPTables
+    include_role:
+      name: iptables
+    when: setupIptables == "yes"
   - name: Apply Compose
     include_role:
       name: compose
@@ -47,3 +47,7 @@
     become: yes
     become_user: christian
     when: setupPersonal == "yes"
+  - name: Setup Gaming VM
+    include_role:
+      name: gaming
+    when: gaming == "yes"

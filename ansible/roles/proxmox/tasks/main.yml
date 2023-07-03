@@ -9,6 +9,8 @@
     user: root
     key: "{{ lookup('file', 'christian_id_rsa.pub') }}"
 - name: Add ironman public key
+  failed_when: false
+  ignore_errors: true
   authorized_key:
     user: root
     key: "{{ hostvars['ironman.christianbingman.com']['pubkey'] }}"

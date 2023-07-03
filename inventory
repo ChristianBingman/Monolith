@@ -9,12 +9,19 @@ setupNAS=no
 installNetdata=yes
 setupProxy=no
 gaming=no
-local_subnet="192.168.1.0/24"
+local_subnet="10.0.0.1/24"
 public_ports='[]'
 public_ports_udp='[]'
+public_ports_docker='[]'
+public_ports_docker_udp='[]'
 private_ports='["22","19999"]'
 private_ports_udp='[]'
+private_ports_docker='[]'
+private_ports_docker_udp='[]'
 setupIptables=no
+setupRouter=no
+dns_nameservers=["10.0.0.1", "8.8.8.8"]
+dns_search_fqdn='christianbingman.com'
 
 [proxmox]
 thor.christianbingman.com
@@ -22,16 +29,16 @@ thor.christianbingman.com
 [proxmox:vars]
 role=proxmox
 ansible_ssh_user=root
-linuxvms=["nickfury","captainamerica","daredevil"]
+linuxvms=["nickfury","captainamerica","daredevil","colossus"]
 
 [base]
-nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes public_ports='["22"]' setupIptables=yes
-professorx.christianbingman.com vm=yes setupPersonal=yes gaming=yes proton_ge_versions='["7-49", "7-48"]' public_ports_udp='["27031","27036"]' public_ports='["27036","27037"]' setupIptables=yes
-captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1/" public_ports='["80","443"]' setupIptables=yes
-daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2/" 
-ironman.christianbingman.com installDocker=yes setupNAS=yes poolname=largestore disks="['ata-ST1000LM048-2E7172_ZKP0D59Q','ata-TOSHIBA_MQ01ABD100M_77K1S0JXS']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2" compose_src="docker/compose/ironman/" setupIptables=yes public_ports='["139","445","80"]'
-web-proxy.christianbingman.com setupProxy=yes ansible_ssh_user=ubuntu in_interface=ens5 setupIptables=yes
+nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes public_ports='["22"]'
+captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1/" public_ports_docker='["80","443"]'
+daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2/" public_ports_docker='[]' private_ports_docker='["80","443","8443","8080","8843","8880","6789","5000","8081"]' private_ports_docker_udp='["3478","10001","1900","5514"]'
+ironman.christianbingman.com installDocker=yes public_ports='["139","445"]' public_ports_docker='["80"]' compose_src="docker/compose/ironman" setupNAS=yes poolname=largestore disks="['ata-ST4000VN006-3CW104_ZW600JQ0','ata-ST4000VN006-3CW104_ZW6014JK']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2"
+web-proxy.christianbingman.com setupProxy=yes ansible_ssh_user=ubuntu in_interface=ens5
+christianbingman.com installDocker=yes compose_src="docker/compose/router" setupRouter=yes public_ports_docker_udp='["53"]' public_ports='["22"]'
 
 [base:vars]
 role=base
-
+setupIptables=yes

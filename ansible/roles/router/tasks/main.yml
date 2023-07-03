@@ -1,0 +1,6 @@
+- name: Disable systemd-resolved
+  include_tasks: disable-resolved.yml
+- name: Setup static IP
+  include_tasks: static-ip.yml
+- name: Setup iptables rules
+  include_tasks: iptables.yml

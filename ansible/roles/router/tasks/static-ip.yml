@@ -1,0 +1,20 @@
+- name: Create disable-network-config.cfg
+  become: yes
+  copy:
+    dest: /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+    content: |
+      network: {config: disabled}
+- name: Template configuration
+  become: yes
+  register: netplan_template
+  template:
+    src: 01-netcfg.yaml
+    dest: /etc/netplan/01-netcfg.yaml
+    mode: '0644'
+    owner: root
+    group: root
+- name: Restart netplan when changed
+  when: netplan_template.changed
+  become: yes
+  command: netplan apply
+

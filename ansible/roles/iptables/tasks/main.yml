@@ -56,6 +56,45 @@
     destination_port: "{{ item }}"
     jump: ACCEPT
   loop: "{{ public_ports_udp }}"
+- name: Docker Management
+  when: installDocker == "yes"
+  become: yes
+  block:
+    - name: Allow Public Docker Ports
+      iptables:
+        chain: DOCKER-USER
+        protocol: tcp
+        destination_port: "{{ item }}"
+        jump: RETURN
+      loop: "{{ public_ports_docker }}"
+    - name: Allow Public Docker Ports (udp)
+      iptables:
+        chain: DOCKER-USER
+        protocol: udp
+        destination_port: "{{ item }}"
+        jump: RETURN
+      loop: "{{ public_ports_docker_udp }}"
+    - name: Allow Private Docker Ports
+      iptables:
+        chain: DOCKER-USER
+        protocol: tcp
+        destination_port: "{{ item }}"
+        source: "{{ local_subnet }}"
+        jump: RETURN
+      loop: "{{ private_ports_docker }}"
+    - name: Allow Public Docker Ports (udp)
+      iptables:
+        chain: DOCKER-USER
+        protocol: udp
+        destination_port: "{{ item }}"
+        source: "{{ local_subnet }}"
+        jump: RETURN
+      loop: "{{ private_ports_docker_udp }}"
+    - name: Delete default allow rule
+      iptables:
+        chain: DOCKER-USER
+        state: absent
+        jump: RETURN
 - name: Disallow all INPUT traffic
   become: yes
   iptables:

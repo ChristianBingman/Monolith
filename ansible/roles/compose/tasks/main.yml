@@ -5,12 +5,16 @@
 - name: Install required python packages
   command: pip3 install docker docker-compose
   changed_when: false
+- name: Create docker directory
+  file:
+    path: /home/ansible/.ansible/docker
+    state: directory
 - name: Copy Docker Directory (Note we may want to change this if we have a large number of files in the compose dir)
   when: compose_src is defined
   copy:
-    src: "{{inventory_dir}}/docker"
-    dest: /home/ansible/.ansible
-    mode: 0600
+    src: "{{inventory_dir}}/docker/compose"
+    dest: /home/ansible/.ansible/docker
+    mode: 0644
 - name: Apply compose file
   community.docker.docker_compose:
     remove_orphans: yes

@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  bind9:
+    image: ubuntu/bind9:9.16-20.04_beta
+    ports:
+      - "53:53/udp"
+    environment:
+      TZ: "America/Chicago"
+      BIND9_USER: root
+    volumes:
+      - '/home/ansible/.ansible/docker/compose/router/bind:/etc/bind'
+  dhcpd-v4-eth1:
+    image: networkboot/dhcpd:latest
+    network_mode: host
+    volumes:
+      - '/home/ansible/.ansible/docker/compose/router/dhcpd-v4-eth1/dhcpd.conf:/data/dhcpd.conf'
+    command: eth1
+  autoheal:
+    image: willfarrell/autoheal:latest
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: all
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+  ddns-updater:
+    image: qmcgaw/ddns-updater:latest
+    volumes:
+      - '/home/ansible/.ansible/docker/compose/router/dns-updater/config.json:/updater/data/config.json'
+      - '/home/ansible/.ansible/docker/compose/router/dns-updater/updates.json:/updater/data/updates.json'

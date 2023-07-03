@@ -52,3 +52,9 @@
   apt:
     update_cache: yes
     name: qemu-guest-agent
+- name: Start guest agent
+  become: yes
+  when: vm =="yes"
+  systemd:
+    name: qemu-guest-agent
+    state: started

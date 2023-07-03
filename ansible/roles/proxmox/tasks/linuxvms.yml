@@ -1,7 +1,7 @@
 - name: Create "{{item}}" container 1
   register: create_container
   community.general.proxmox_kvm:
-    node: 'pve'
+    node: 'thor'
     api_user: 'ansible@pam'
     api_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -25,7 +25,7 @@
 - name: Start container if new
   when: create_container.changed
   community.general.proxmox_kvm:
-    node: 'pve'
+    node: 'thor'
     api_user: 'ansible@pam'
     api_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -34,7 +34,7 @@
           36646139356635386366373833303633393935623961653839353137633531353239663937353064
           6431666463396231360a313364613234613235613035353261666234646566633836623564653562
           38306131333364653663346262393265346432346463323636636163383531336263
-    api_host: 'pve.christianbingman.com'
+    api_host: 'thor.christianbingman.com'
     proxmox_default_behavior: no_defaults
     name: "{{item}}"
     state: started

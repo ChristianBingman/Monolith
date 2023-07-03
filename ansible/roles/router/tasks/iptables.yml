@@ -1,0 +1,69 @@
+- name: Ensure forwarding is allowed
+  become: yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+- name: Ensure ipv6 forwarding is allowed
+  become: yes
+  sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+- name: Route all requests out of eth0 using MASQUERADE
+  become: yes
+  iptables:
+    chain: POSTROUTING
+    jump: MASQUERADE
+    out_interface: eth0
+    table: nat
+    comment: Route all requests out of eth0 using MASQUERADE
+- name: Allow established connections to be made for traffic from eth0 to eth1
+  become: yes
+  iptables:
+    chain: FORWARD
+    in_interface: eth0
+    out_interface: eth1
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+    comment: Allow established connections to be made for traffic from eth0 to eth1
+- name: Allow all outbound connections from eth1 to eth0
+  become: yes
+  iptables:
+    chain: FORWARD
+    in_interface: eth1
+    out_interface: eth0
+    jump: ACCEPT
+    comment: Allow all outbound connections from eth1 to eth0
+- name: Route all requests out of eth0 using MASQUERADE (IPv6)
+  become: yes
+  iptables:
+    chain: POSTROUTING
+    jump: MASQUERADE
+    out_interface: eth0
+    ip_version: ipv6
+    table: nat
+    comment: Route all requests out of eth0 using MASQUERADE
+- name: Allow established connections to be made for traffic from eth0 to eth1 (IPv6)
+  become: yes
+  iptables:
+    chain: FORWARD
+    ip_version: ipv6
+    in_interface: eth0
+    out_interface: eth1
+    ctstate: ESTABLISHED,RELATED
+    jump: ACCEPT
+    comment: Allow established connections to be made for traffic from eth0 to eth1
+- name: Allow all outbound connections from eth1 to eth0 (IPv6)
+  become: yes
+  iptables:
+    chain: FORWARD
+    ip_version: ipv6
+    in_interface: eth1
+    out_interface: eth0
+    jump: ACCEPT
+    comment: Allow all outbound connections from eth1 to eth0

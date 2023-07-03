@@ -24,7 +24,7 @@
 - name: Create pool
   when: check_zpool.rc != 0
   become: yes
-  shell: "/usr/sbin/zpool create {{poolname}} {{disks | join(' ')}}"
+  shell: "/usr/sbin/zpool create {{poolname}} mirror {{disks | join(' ')}}"
 - name: Include dataset file
   include_vars: "{{inventory_dir}}/{{datasetfile}}"
 - name: Create datasets and mounts
