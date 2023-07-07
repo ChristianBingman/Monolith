@@ -73,5 +73,6 @@
     state: started
 - include_tasks: linuxvms.yml
   loop: "{{linuxvms}}"
-- include_tasks: professorx.yml
+# Not used anymore
+# - include_tasks: professorx.yml
 - meta: clear_host_errors

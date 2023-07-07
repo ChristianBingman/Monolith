@@ -31,6 +31,15 @@
     source: "{{ local_subnet }}"
     jump: ACCEPT
   loop: "{{ private_ports }}"
+- name: Allow Private Ports (tcp & vpn)
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "{{ item }}"
+    source: "{{ vpn_subnet }}"
+    jump: ACCEPT
+  loop: "{{ private_ports }}"
 - name: Allow Private Ports (udp)
   become: yes
   iptables:
@@ -38,6 +47,15 @@
     protocol: udp
     destination_port: "{{ item }}"
     source: "{{ local_subnet }}"
+    jump: ACCEPT
+  loop: "{{ private_ports_udp }}"
+- name: Allow Private Ports (udp & vpn)
+  become: yes
+  iptables:
+    chain: INPUT
+    protocol: udp
+    destination_port: "{{ item }}"
+    source: "{{ vpn_subnet }}"
     jump: ACCEPT
   loop: "{{ private_ports_udp }}"
 - name: Allow Public Ports (tcp)
@@ -74,7 +92,7 @@
         destination_port: "{{ item }}"
         jump: RETURN
       loop: "{{ public_ports_docker_udp }}"
-    - name: Allow Private Docker Ports
+    - name: Allow Private Docker Ports (tcp)
       iptables:
         chain: DOCKER-USER
         protocol: tcp
@@ -82,12 +100,28 @@
         source: "{{ local_subnet }}"
         jump: RETURN
       loop: "{{ private_ports_docker }}"
-    - name: Allow Public Docker Ports (udp)
+    - name: Allow Private Docker Ports (tcp & vpn)
+      iptables:
+        chain: DOCKER-USER
+        protocol: tcp
+        destination_port: "{{ item }}"
+        source: "{{ vpn_subnet }}"
+        jump: RETURN
+      loop: "{{ private_ports_docker }}"
+    - name: Allow Private Docker Ports (udp)
       iptables:
         chain: DOCKER-USER
         protocol: udp
         destination_port: "{{ item }}"
         source: "{{ local_subnet }}"
+        jump: RETURN
+      loop: "{{ private_ports_docker_udp }}"
+    - name: Allow Private Docker Ports (udp & vpn)
+      iptables:
+        chain: DOCKER-USER
+        protocol: udp
+        destination_port: "{{ item }}"
+        source: "{{ vpn_subnet }}"
         jump: RETURN
       loop: "{{ private_ports_docker_udp }}"
     - name: Delete default allow rule

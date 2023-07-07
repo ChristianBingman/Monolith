@@ -11,11 +11,11 @@ $TTL    604800
 
 @       IN      NS      ns1.christianbingman.com.
 
-wolverine IN    A       10.0.0.1
-ns1       IN    A       10.0.0.1
-thor      IN    A       10.0.0.2
-hulk      IN    A       10.0.0.3
-ironman   IN    A       10.0.0.4
-captainamerica IN A     10.0.0.5
-daredevil IN    A       10.0.0.6
-nickfury  IN    A       10.0.0.7
+wolverine IN    A       10.2.0.1
+ns1       IN    A       10.2.0.1
+thor      IN    A       10.2.0.2
+hulk      IN    A       10.2.0.3
+ironman   IN    A       10.2.0.4
+captainamerica IN A     10.2.0.5
+daredevil IN    A       10.2.0.6
+nickfury  IN    A       10.2.0.7
