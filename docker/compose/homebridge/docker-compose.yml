@@ -1,0 +1,21 @@
+services:
+  homebridge:
+    container_name: homebridge
+    image: oznu/homebridge:latest
+    restart: always
+    network_mode: host
+    volumes:
+      - homebridge:/homebridge
+    logging:
+      driver: json-file
+      options:
+        max-size: "10mb"
+        max-file: "1"
+  autoheal:
+    image: willfarrell/autoheal:latest
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: all
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+volumes:
+  homebridge:
