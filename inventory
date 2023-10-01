@@ -31,10 +31,11 @@ thor.christianbingman.com
 [proxmox:vars]
 role=proxmox
 ansible_ssh_user=root
-linuxvms=["nickfury","captainamerica","daredevil"]
+linuxvms=["doctorstange","nickfury","captainamerica","daredevil"]
 
 [base]
-nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes public_ports='["22","5001"]' setupDesktop=yes
+# Borked...
+# nickfury.christianbingman.com autoupdate=no vm=yes setupPersonal=yes installDocker=yes public_ports='["22","5001"]' setupDesktop=yes
 captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1" public_ports_docker='["80","443"]'
 daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2" public_ports_docker='[]' private_ports_docker='["80","443","8443","8080","8843","8880","6789","5000","8081"]' private_ports_docker_udp='["3478","10001","1900","5514"]'
 ironman.christianbingman.com installDocker=yes public_ports='["139","445"]' public_ports_docker='["80"]' compose_src="docker/compose/ironman" setupNAS=yes poolname=largestore disks="['ata-ST4000VN006-3CW104_ZW600JQ0','ata-ST4000VN006-3CW104_ZW6014JK']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2"
