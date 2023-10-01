@@ -2,20 +2,19 @@ version: "3.9"
 services:
   traefik:
     image: traefik:v2.5
-    restart: always
     ports:
       - "8080:8080"
       - "80:80"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/ansible/.ansible/docker/compose/ironman/traefik.yml:/etc/traefik/traefik.yml"
+    restart: unless-stopped
   transmission-openvpn:
     cap_add:
       - NET_ADMIN
     volumes:
       - "/mnt/general/transmission-data:/data"
     env_file: ./secrets.env
-    restart: always
     logging:
       driver: json-file
       options:
@@ -27,9 +26,38 @@ services:
     expose:
       - '9091'
     image: haugene/transmission-openvpn
+    restart: unless-stopped
   autoheal:
     image: willfarrell/autoheal:latest
     environment:
       AUTOHEAL_CONTAINER_LABEL: all
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
+    restart: unless-stopped
+  lychee:
+    image: lycheeorg/lychee
+    restart: unless-stopped
+    container_name: lychee
+    expose:
+      - '80'
+    labels:
+      - traefik.http.routers.lychee.rule=Host(`lychee.christianbingman.com`)
+    volumes:
+      - "lycheeconf:/conf"
+      - "lycheesym:/sym"
+      - "/mnt/dockerbackup/lychee/uploads:/uploads"
+      - "/mnt/general/Temp:/existingpictures"
+    environment:
+      PHP_TZ: "America/Chicago"
+      TIMEZONE: "America/Chicago"
+      APP_URL: "http://lychee.christianbingman.com"
+      APP_ENV: production
+
+networks:
+  compose1:
+    driver_opts:
+      com.docker.network.bridge.name: compose1
+
+volumes:
+  lycheeconf:
+  lycheesym:

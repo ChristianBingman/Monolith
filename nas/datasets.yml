@@ -4,10 +4,11 @@ datasets:
   - name: General
     extra:
       mountpoint: /mnt/general
-  - name: Proxmox
-    extra:
-      mountpoint: /mnt/proxmox
   - name: TimeMachine
     extra:
       mountpoint: /mnt/timemachine
       refquota: 300G
+  - name: DockerBackups
+    extra:
+      mountpoint: /mnt/dockerbackups
+      refquota: 1T

@@ -1,0 +1,34 @@
+- name: Add desktop packages
+  become: yes
+  apt:
+    pkg:
+      - cifs-utils
+      - xfce4
+      - xfce4-goodies
+      - tigervnc-standalone-server
+      - tigervnc-xorg-extension
+      - tigervnc-viewer
+      - gnucash
+    update_cache: yes
+- name: Template SMB password
+  template:
+    src: smb.passwd
+    dest: /home/ansible/smb.passwd
+    mode: '0600'
+- name: Ensure SMB Share is available
+  become: yes
+  register: fstab
+  lineinfile:
+    path: /etc/fstab
+    line: "//ironman.christianbingman.com/General /mnt/General cifs uid=christian,credentials=/home/ansible/smb.passwd,vers=3.0,noperm 0 0"
+- name: Create share directory if it doesn't exist
+  become: yes
+  file:
+    path: /mnt/General
+    state: directory
+    owner: christian
+    group: sudo
+- name: Mount if changed
+  become: yes
+  when: fstab.changed
+  command: mount -a

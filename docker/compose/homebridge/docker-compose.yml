@@ -2,7 +2,7 @@ services:
   homebridge:
     container_name: homebridge
     image: oznu/homebridge:latest
-    restart: always
+    restart: unless-stopped
     network_mode: host
     volumes:
       - homebridge:/homebridge
@@ -17,5 +17,10 @@ services:
       AUTOHEAL_CONTAINER_LABEL: all
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
+    restart: unless-stopped
 volumes:
   homebridge:
+networks:
+  compose1:
+    driver_opts:
+      com.docker.network.bridge.name: compose1

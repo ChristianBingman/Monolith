@@ -122,3 +122,14 @@
   become: yes
   shell: (echo '{{ samba_password }}'; echo '{{ samba_password }}') | smbpasswd -s -a christian
   changed_when: false
+- name: Download and Extract ZFS Auto Snapshot
+  register: extract_zfs_auto_snap
+  unarchive:
+    src: https://github.com/zfsonlinux/zfs-auto-snapshot/archive/upstream/1.2.4.tar.gz
+    dest: /home/ansible/.ansible/
+    creates: /home/ansible/.ansible/zfs-auto-snapshot-upstream-1.2.4
+    remote_src: yes
+- name: Install ZFS Auto Snapshot
+  when: extract_zfs_auto_snap.changed
+  become: yes
+  shell: cd /home/ansible/.ansible/zfs-auto-snapshot-upstream-1.2.4 && make install

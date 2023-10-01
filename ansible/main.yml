@@ -47,7 +47,7 @@
     become: yes
     become_user: christian
     when: setupPersonal == "yes"
-  - name: Setup Gaming VM
+  - name: Setup Desktop Server
     include_role:
-      name: gaming
-    when: gaming == "yes"
+      name: desktop
+    when: setupDesktop == "yes"

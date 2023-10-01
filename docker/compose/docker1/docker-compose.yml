@@ -9,6 +9,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/ansible/.ansible/docker/compose/docker1/traefik.yml:/etc/traefik/traefik.yml"
+    restart: unless-stopped
   website:
     container_name: website
     image: christianbingman/website
@@ -17,6 +18,7 @@ services:
       - "traefik.http.routers.website.rule=Host(`www.christianbingman.com`)"
       - "traefik.http.routers.website.tls=true"
       - "traefik.http.routers.website.tls.certresolver=myresolver"
+    restart: unless-stopped
   n8n:
     container_name: n8n
     image: n8nio/n8n:0.210.0
@@ -29,11 +31,17 @@ services:
       - "traefik.http.routers.n8n.tls.certresolver=myresolver"
     volumes:
       - n8n:/home/node/.n8n
+    restart: unless-stopped
   autoheal:
     image: willfarrell/autoheal:latest
     environment:
       AUTOHEAL_CONTAINER_LABEL: all
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
+    restart: unless-stopped
 volumes:
   n8n:
+networks:
+  compose1:
+    driver_opts:
+      com.docker.network.bridge.name: compose1

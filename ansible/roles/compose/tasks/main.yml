@@ -6,23 +6,44 @@
   command: pip3 install docker docker-compose
   changed_when: false
 - name: Create docker directory
+  when: compose_src is defined
   file:
-    path: /home/ansible/.ansible/docker
+    path: "/home/ansible/.ansible/{{compose_src}}"
+    state: directory
+- name: Create templates directory
+  when: compose_src is defined
+  file:
+    path: "/home/ansible/.ansible/{{compose_src}}-templates"
     state: directory
 - name: Copy Docker Directory (Note we may want to change this if we have a large number of files in the compose dir)
   when: compose_src is defined
   copy:
-    src: "{{inventory_dir}}/docker/compose"
-    dest: /home/ansible/.ansible/docker
+    src: "{{inventory_dir}}/{{compose_src}}/"
+    dest: "{{'/home/ansible/.ansible/' + compose_src}}"
     mode: 0644
+- name: Copy Templates
+  when: compose_src is defined
+  template:
+    src: "{{ item }}"
+    dest: "{{'/home/ansible/.ansible/' + compose_src + '-templates'}}/{{item | basename}}"
+  with_fileglob:
+    - "{{inventory_dir}}/{{compose_src}}-templates/*"
 - name: Apply compose file
+  register: compose
   community.docker.docker_compose:
+    recreate: "{{recreate_strategy}}"
     remove_orphans: yes
     project_src: "{{'/home/ansible/.ansible/' + compose_src}}"
 - name: Restart Traefik
+  when: compose.changed
   community.docker.docker_compose:
     restarted: yes
     services:
       - traefik
     project_src: "{{'/home/ansible/.ansible/' + compose_src}}"
-
+- name: Allow all traffic from docker to host
+  become: yes
+  iptables:
+    chain: INPUT
+    in_interface: compose1
+    jump: ACCEPT

@@ -11,6 +11,7 @@ $TTL    604800
 
 @       IN      NS      ns1.christianbingman.com.
 
+; A
 wolverine IN    A       10.2.0.1
 ns1       IN    A       10.2.0.1
 thor      IN    A       10.2.0.2
@@ -19,3 +20,8 @@ ironman   IN    A       10.2.0.4
 captainamerica IN A     10.2.0.5
 daredevil IN    A       10.2.0.6
 nickfury  IN    A       10.2.0.7
+
+; CNAME 
+prometheus IN   CNAME   daredevil.christianbingman.com.
+grafana   IN    CNAME   daredevil.christianbingman.com.
+lychee    IN    CNAME   ironman.christianbingman.com.

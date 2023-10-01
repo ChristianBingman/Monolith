@@ -73,6 +73,5 @@
     state: started
 - include_tasks: linuxvms.yml
   loop: "{{linuxvms}}"
-# Not used anymore
-# - include_tasks: professorx.yml
+- include_tasks: nickfury.yml
 - meta: clear_host_errors

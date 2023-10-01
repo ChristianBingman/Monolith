@@ -1,7 +1,6 @@
 services:
   traefik:
     image: traefik:v2.5
-    restart: always
     ports:
       - "8081:8080"
       - "80:80"
@@ -9,6 +8,33 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "/home/ansible/.ansible/docker/compose/docker2/traefik.yml:/etc/traefik/traefik.yml"
+    restart: unless-stopped
+    networks:
+      compose1:
+  prometheus:
+    image: prom/prometheus
+    restart: always
+    expose:
+      - 9090
+    volumes:
+      - "/home/ansible/.ansible/docker/compose/docker2-templates/prometheus.yml:/etc/prometheus/prometheus.yml"
+    labels:
+      - traefik.http.routers.prometheus.rule=Host(`prometheus.christianbingman.com`)
+    networks:
+      compose1:
+  grafana:
+    image: grafana/grafana-oss
+    restart: always
+    expose:
+      - 3000
+    volumes:
+      - "grafana_storage:/var/lib/grafana"
+    environment:
+      GF_SERVER_ROOT_URL: "http://grafana.christianbingman.com"
+    labels:
+      - traefik.http.routers.grafana.rule=Host(`grafana.christianbingman.com`)
+    networks:
+      compose1:
   unifi-controller:
     image: lscr.io/linuxserver/unifi-controller:latest
     container_name: unifi-controller
@@ -29,29 +55,38 @@ services:
       - 6789:6789 #optional
       - 5514:5514/udp #optional
     restart: unless-stopped
+    networks:
+      compose1:
   jupyter:
     container_name: jupyter
     image: jupyter/scipy-notebook:latest
     labels:
       - traefik.http.routers.jupyter.rule=Host(`jupyter.christianbingman.com`)
-    restart: always
+    restart: unless-stopped
     volumes:
       - jupytervol:/home/jovyan/work
     expose:
       - 8888
+    networks:
+      compose1:
   registry:
     image: registry:2
     ports:
       - 5000:5000
-    restart: always
+    restart: unless-stopped
     volumes:
       - registryvol:/var/lib/registry
+    networks:
+      compose1:
   autoheal:
     image: willfarrell/autoheal:latest
     environment:
       AUTOHEAL_CONTAINER_LABEL: all
     volumes:
       - '/var/run/docker.sock:/var/run/docker.sock'
+    restart: unless-stopped
+    networks:
+      compose1:
   renderer:
     expose:
       - 8081
@@ -59,9 +94,17 @@ services:
     restart: unless-stopped
     labels:
       - traefik.http.routers.renderer.rule=Host(`renderer.christianbingman.com`)
+    networks:
+      compose1:
 
 volumes:
   jupytervol:
   noderedvol:
   registryvol:
   unifi:
+  grafana_storage:
+
+networks:
+  compose1:
+    driver_opts:
+      com.docker.network.bridge.name: compose1

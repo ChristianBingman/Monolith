@@ -5,10 +5,11 @@ vm=no
 autoupdate=yes
 setupPersonal=no
 installDocker=no
+recreate_strategy="smart"
 setupNAS=no
 installNetdata=yes
 setupProxy=no
-gaming=no
+setupDesktop=no
 local_subnet="10.2.0.1/24"
 vpn_subnet="192.168.43.0/24"
 public_ports='[]'
@@ -33,13 +34,13 @@ ansible_ssh_user=root
 linuxvms=["nickfury","captainamerica","daredevil"]
 
 [base]
-nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes public_ports='["22"]'
-captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1/" public_ports_docker='["80","443"]'
-daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2/" public_ports_docker='[]' private_ports_docker='["80","443","8443","8080","8843","8880","6789","5000","8081"]' private_ports_docker_udp='["3478","10001","1900","5514"]'
+nickfury.christianbingman.com vm=yes setupPersonal=yes installDocker=yes public_ports='["22","5001"]' setupDesktop=yes
+captainamerica.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker1" public_ports_docker='["80","443"]'
+daredevil.christianbingman.com vm=yes installDocker=yes compose_src="docker/compose/docker2" public_ports_docker='[]' private_ports_docker='["80","443","8443","8080","8843","8880","6789","5000","8081"]' private_ports_docker_udp='["3478","10001","1900","5514"]'
 ironman.christianbingman.com installDocker=yes public_ports='["139","445"]' public_ports_docker='["80"]' compose_src="docker/compose/ironman" setupNAS=yes poolname=largestore disks="['ata-ST4000VN006-3CW104_ZW600JQ0','ata-ST4000VN006-3CW104_ZW6014JK']" datasetfile="nas/datasets.yml" smb_conf="nas/smb.conf.j2"
 web-proxy.christianbingman.com setupProxy=yes ansible_ssh_user=ubuntu in_interface=ens5
-wolverine.christianbingman.com installDocker=yes compose_src="docker/compose/router" setupRouter=yes public_ports_docker_udp='["53","500","4500"]' public_ports='["22"]'
-homebridge.local installDocker=yes compose_src="docker/compose/homebridge/" public_ports='["22"]'
+wolverine.christianbingman.com installDocker=yes compose_src="docker/compose/router" setupRouter=yes public_ports_docker_udp='["53","500","4500"]' public_ports='["22"]' recreate_strategy='never'
+homebridge.local installDocker=yes compose_src="docker/compose/homebridge" public_ports='["22"]'
 
 [base:vars]
 role=base

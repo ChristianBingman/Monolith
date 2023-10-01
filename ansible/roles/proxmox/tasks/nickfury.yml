@@ -1,0 +1,6 @@
+- name: Add video card
+  become: yes
+  lineinfile:
+    path: /etc/pve/qemu-server/104.conf
+    create: yes
+    line: "hostpci0: 0000:01:00,x-vga=1"
