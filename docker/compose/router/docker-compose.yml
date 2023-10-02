@@ -29,6 +29,15 @@ services:
       - '/home/ansible/.ansible/docker/compose/router/dhcpd-v6-eth1/dhcpd.conf:/data/dhcpd.conf'
     command: eth1
     restart: unless-stopped
+  radvd-eth1:
+    image: rsrchboy/radvd
+    network_mode: host
+    volumes:
+      - '/home/ansible/.ansible/docker/compose/router/radvd-eth1/radvd.conf:/etc/radvd.conf'
+    command: -d 2 -m stderr
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
   autoheal:
     image: willfarrell/autoheal:latest
     environment:
